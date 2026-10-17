@@ -102,7 +102,17 @@ async function rss(url, limit = 8) {
     let link = '';
     if (l) link = (l.textContent || '').trim() || l.getAttribute('href') || '';
     const tr = n.getElementsByTagName('ht:approx_traffic')[0];
-    out.push(item(t ? t.textContent : '', link, tr ? tr.textContent.trim() + ' searches' : ''));
+    let meta = tr ? tr.textContent.trim() + ' searches' : '';
+    if (tr) {
+      // Google Trends items all share one feed link, so link to the first news story (or a search) instead.
+      const nu = n.getElementsByTagName('ht:news_item_url')[0];
+      const nt = n.getElementsByTagName('ht:news_item_title')[0];
+      const term = t ? t.textContent.trim() : '';
+      link = nu && nu.textContent.trim() ? nu.textContent.trim() : 'https://www.google.com/search?q=' + encodeURIComponent(term);
+      const head = nt ? stripTags(nt.textContent) : '';
+      if (head) meta += ' · ' + (head.length > 90 ? head.slice(0, 87) + '…' : head);
+    }
+    out.push(item(t ? t.textContent : '', link, meta));
     if (out.length >= limit) break;
   }
   return out;
@@ -241,7 +251,7 @@ function renderGroups(s) {
     o += '<h3>' + esc(g.name) + '</h3><div class="src">' + esc(g.source) + '</div><ol>';
     for (const i of g.items) {
       const t = i.url ? '<a href="' + esc(i.url) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a>' : esc(i.title);
-      o += '<li>' + t + (i.meta ? ' <span class="m">— ' + esc(i.meta) + '</span>' : '') + '</li>';
+      o += '<li dir="auto">' + t + (i.meta ? ' <span class="m">— ' + esc(i.meta) + '</span>' : '') + '</li>';
     }
     o += '</ol>';
   }
