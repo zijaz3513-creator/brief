@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>Morning Brief</title>
+<style>
+:root{--bg:#f1f5f9;--card:#fff;--ink:#0f172a;--mute:#64748b;--acc:#6366f1;--link:#4f46e5;--bad:#b91c1c}
+@media(prefers-color-scheme:dark){:root{--bg:#0b1120;--card:#162033;--ink:#e2e8f0;--mute:#94a3b8;--acc:#818cf8;--link:#a5b4fc;--bad:#fca5a5}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Arial,Helvetica,sans-serif;-webkit-text-size-adjust:100%}
+header{position:sticky;top:0;z-index:5;background:#0f172a;color:#fff;padding:calc(env(safe-area-inset-top) + 12px) 16px 12px;display:flex;gap:10px;align-items:center}
+header h1{font-size:18px;margin:0;flex:1}
+header small{display:block;font-weight:normal;font-size:12px;color:#94a3b8;margin-top:2px}
+button{font:inherit;border:0;border-radius:8px;padding:8px 12px;background:var(--acc);color:#fff}
+button.ghost{background:transparent;border:1px solid #475569;color:#fff}
+button:disabled{opacity:.6}
+main{max-width:800px;margin:0 auto;padding:12px 12px 40px}
+section{background:var(--card);border-radius:12px;margin-bottom:12px;overflow:hidden}
+section>h2{margin:0;padding:14px 16px;font-size:17px;border-bottom:2px solid var(--acc);cursor:pointer;display:flex;justify-content:space-between;gap:8px}
+section>h2 span.s{font-size:12px;color:var(--mute);font-weight:normal;align-self:center}
+.body{padding:4px 16px 12px}
+.collapsed .body{display:none}
+h3{margin:14px 0 2px;font-size:15px}
+.src{color:var(--mute);font-size:12px;margin-bottom:6px}
+ol{margin:0;padding-left:22px}
+li{margin-bottom:6px;font-size:14px;line-height:1.35}
+li a{color:var(--link);text-decoration:none}
+li .m{color:var(--mute);font-size:12px}
+.note{color:var(--mute);font-size:12px;margin:8px 0 0}
+.none{color:var(--bad);font-size:14px;margin:12px 0}
+.load{color:var(--mute);font-size:14px;margin:12px 0}
+#settings{display:none;background:var(--card);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+#settings label{display:block;font-size:13px;margin:10px 0 4px;color:var(--mute)}
+#settings input{width:100%;padding:10px;border-radius:8px;border:1px solid #cbd5e1;font-size:15px;background:var(--bg);color:var(--ink)}
+#settings p{font-size:12px;color:var(--mute)}
+</style>
+</head>
+<body>
+<header>
+  <h1>☀️ Morning Brief<small id="stamp">Loading…</small></h1>
+  <button class="ghost" id="gear" aria-label="Settings">⚙</button>
+  <button id="refresh">Refresh</button>
+</header>
+<main>
+  <div id="settings">
+    <strong>Settings</strong>
+    <label for="geo">Country code (Google Trends / YouTube)</label>
+    <input id="geo" maxlength="2" autocapitalize="characters">
+    <label for="ytkey">YouTube Data API key (optional, free)</label>
+    <input id="ytkey" autocapitalize="none" autocomplete="off">
+    <p>Without a key, YouTube shows Google News coverage instead of the live chart.</p>
+    <button id="save">Save</button>
+  </div>
+  <div id="out"></div>
+</main>
+
+<script>
+/* ---------- helpers ---------- */
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const decode = (s) => { const t = document.createElement('textarea'); t.innerHTML = String(s ?? ''); return t.value; };
+const stripTags = (s) => decode(String(s ?? '').replace(/<[^>]*>/g, '')).trim();
+
+function settings() {
+  let s = {};
+  try { s = JSON.parse(localStorage.getItem('mb:settings') || '{}'); } catch (e) {}
+  return { geo: (s.geo || 'KW').toUpperCase(), ytkey: s.ytkey || '' };
+}
+
+async function http(url, headers) {
+  const ctl = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  const timer = new Promise((_, rej) => setTimeout(() => { if (ctl) ctl.abort(); rej(new Error('timeout')); }, 20000));
+  const req = (async () => {
+    const r = await fetch(url, { headers: headers || {}, signal: ctl ? ctl.signal : undefined });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.text();
+  })();
+  return Promise.race([req, timer]);
+}
+async function httpGet(url, headers) { try { return await http(url, headers); } catch (e) { return null; } }
+async function httpJson(url, headers) {
+  const t = await httpGet(url, headers);
+  if (!t) return null;
+  try { return JSON.parse(t); } catch (e) { return null; }
+}
+const item = (title, url = '', meta = '') => ({ title: stripTags(title), url, meta });
+const group = (name, source, items) => ({ name, source, items });
+
+async function rss(url, limit = 8) {
+  const x = await httpGet(url);
+  if (!x) return [];
+  const doc = new DOMParser().parseFromString(x, 'text/xml');
+  if (doc.getElementsByTagName('parsererror').length) return [];
+  let nodes = Array.from(doc.getElementsByTagName('item'));
+  if (!nodes.length) nodes = Array.from(doc.getElementsByTagName('entry'));
+  const out = [];
+  for (const n of nodes) {
+    const t = n.getElementsByTagName('title')[0];
+    const l = n.getElementsByTagName('link')[0];
+    let link = '';
+    if (l) link = (l.textContent || '').trim() || l.getAttribute('href') || '';
+    const tr = n.getElementsByTagName('ht:approx_traffic')[0];
+    out.push(item(t ? t.textContent : '', link, tr ? tr.textContent.trim() + ' searches' : ''));
+    if (out.length >= limit) break;
+  }
+  return out;
+}
+const news = (q, limit = 6) => rss('https://news.google.com/rss/search?q=' + encodeURIComponent(q + ' when:1d') + '&hl=en&gl=US&ceid=US:en', limit);
+const safe = async (fn) => { try { return (await fn()) || []; } catch (e) { return []; } };
+
+/* ---------- collectors (same sources as the web version) ---------- */
+async function buildSocial() {
+  const { geo, ytkey } = settings();
+  const [yt, xh, others] = await Promise.all([
+    (async () => {
+      if (!ytkey) return [];
+      const d = await httpJson('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&maxResults=10&regionCode=' + geo + '&key=' + encodeURIComponent(ytkey));
+      return ((d && d.items) || []).map((v) => item(v.snippet.title, 'https://youtu.be/' + v.id,
+        v.snippet.channelTitle + ' · ' + Number((v.statistics && v.statistics.viewCount) || 0).toLocaleString('en-US') + ' views'));
+    })(),
+    httpGet('https://trends24.in/kuwait/'),
+    Promise.all([['TikTok', 'TikTok trend'], ['Instagram', 'Instagram trend'], ['Facebook', 'Facebook Meta trending'], ['LinkedIn', 'LinkedIn trending']]
+      .map(async ([name, q]) => group(name, 'Google News (no public trending API)', await news(q)))),
+  ]);
+  const g = [];
+  g.push(yt.length ? group('YouTube', 'YouTube Data API – most popular, ' + geo, yt)
+    : group('YouTube', 'Google News (add a YouTube key in settings for the live chart)', await news('YouTube trending video')));
+  let x = [];
+  if (xh) {
+    const seen = new Set();
+    for (const m of xh.matchAll(/class="trend-link"[^>]*>([^<]+)</g)) {
+      const t = m[1].trim();
+      if (!seen.has(t)) { seen.add(t); x.push(item(t, 'https://x.com/search?q=' + encodeURIComponent(t))); }
+      if (x.length >= 12) break;
+    }
+  }
+  g.push(x.length ? group('X (Twitter)', 'trends24.in – Kuwait', x)
+    : group('X (Twitter)', 'Google Trends – ' + geo, await rss('https://trends.google.com/trending/rss?geo=' + geo, 10)));
+  return g.concat(others);
+}
+
+async function buildTech() {
+  const [hn, tc, vg, ars] = await Promise.all([
+    httpJson('https://hn.algolia.com/api/v1/search?tags=front_page&hitsPerPage=10'),
+    rss('https://techcrunch.com/category/artificial-intelligence/feed/', 8),
+    rss('https://www.theverge.com/rss/ai-artificial-intelligence/index.xml', 6),
+    rss('https://feeds.arstechnica.com/arstechnica/index', 6),
+  ]);
+  const items = ((hn && hn.hits) || []).map((h) => item(h.title || '', h.url || 'https://news.ycombinator.com/item?id=' + h.objectID,
+    (h.points ?? 0) + ' points · ' + (h.num_comments ?? 0) + ' comments'));
+  return [group('Hacker News front page', 'Algolia HN API', items), group('AI news', 'TechCrunch AI', tc),
+    group('AI news', 'The Verge AI', vg), group('Tech headlines', 'Ars Technica', ars)];
+}
+
+async function buildSell() {
+  const { geo } = settings();
+  const [a, b, c, d, e] = await Promise.all([
+    rss('https://trends.google.com/trending/rss?geo=' + geo, 10),
+    rss('https://trends.google.com/trending/rss?geo=US', 10),
+    rss('https://www.producthunt.com/feed', 8),
+    rss('https://www.reddit.com/r/dropship/top/.rss?t=day', 8),
+    news('trending products to sell online ecommerce', 8),
+  ]);
+  return [group('Trending searches (demand signal)', 'Google Trends – ' + geo, a), group('Trending searches – US', 'Google Trends – US', b),
+    group('New products launching', 'Product Hunt', c), group('Dropshipping community', 'Reddit r/dropship top today', d),
+    group('Trending products news', 'Google News', e)];
+}
+
+function fmtPrice(p) { return Number(p || 0).toLocaleString('en-US', { maximumFractionDigits: 6 }); }
+function coinLine(c) {
+  const ch = c.price_change_percentage_24h ?? 0;
+  return item(c.name + ' (' + String(c.symbol).toUpperCase() + ')', 'https://www.coingecko.com/en/coins/' + c.id,
+    '$' + fmtPrice(c.current_price) + ' · ' + (ch >= 0 ? '+' : '') + ch.toFixed(1) + '% 24h');
+}
+async function buildCrypto() {
+  const [t, m, n] = await Promise.all([
+    httpJson('https://api.coingecko.com/api/v3/search/trending'),
+    httpJson('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=100&page=1&price_change_percentage=24h'),
+    news('cryptocurrency market opportunity', 6),
+  ]);
+  const g = [];
+  g.push(group('Trending coins', 'CoinGecko', ((t && t.coins) || []).map((c) => item(c.item.name + ' (' + c.item.symbol + ')',
+    'https://www.coingecko.com/en/coins/' + c.item.id, 'Rank #' + (c.item.market_cap_rank ?? '?') + ' · most searched on CoinGecko'))));
+  if (Array.isArray(m) && m.length) {
+    const s = m.slice().sort((a, b) => (b.price_change_percentage_24h ?? 0) - (a.price_change_percentage_24h ?? 0));
+    g.push(group('Top gainers (top 100 by market cap)', 'CoinGecko', s.slice(0, 8).map(coinLine)));
+    g.push(group('Biggest drops (possible dip watch)', 'CoinGecko', s.slice().reverse().slice(0, 5).map(coinLine)));
+  }
+  g.push(group('Crypto news', 'Google News', n));
+  return g;
+}
+
+async function buildGithub() {
+  const g = [];
+  const pages = await Promise.all([['daily', 'Trending today'], ['weekly', 'Trending this week']]
+    .map(async ([since, label]) => [label, await httpGet('https://github.com/trending?since=' + since)]));
+  for (const [label, h] of pages) {
+    const items = [];
+    if (h) {
+      const arts = [...h.matchAll(/<article class="Box-row">([\s\S]*?)<\/article>/g)].slice(0, 10);
+      for (const [, a] of arts) {
+        const m = a.match(/<h2[^>]*>[\s\S]*?<a[^>]*href="([^"]+)"/);
+        if (!m) continue;
+        const path = m[1].trim();
+        const d = a.match(/<p[^>]*>([\s\S]*?)<\/p>/);
+        const desc = d ? stripTags(d[1]) : '';
+        const l = a.match(/itemprop="programmingLanguage">([^<]+)</);
+        const s = a.match(/([\d,]+)\s+stars\s+(today|this week)/);
+        const meta = [l ? l[1].trim() : '', s ? s[1] + ' stars ' + s[2] : ''].filter(Boolean).join(' · ');
+        items.push(item(path.replace(/^\//, '') + (desc ? ' — ' + desc : ''), 'https://github.com' + path, meta));
+      }
+    }
+    if (items.length) g.push(group(label, 'github.com/trending', items));
+  }
+  if (!g.length) {
+    const since = new Date(Date.now() - 7 * 864e5).toISOString().slice(0, 10);
+    const d = await httpJson('https://api.github.com/search/repositories?q=created:>' + since + '&sort=stars&order=desc&per_page=10', { Accept: 'application/vnd.github+json' });
+    g.push(group('New repos this week', 'GitHub Search API', ((d && d.items) || []).map((r) =>
+      item(r.full_name + ' — ' + (r.description || ''), r.html_url, (r.language || '') + ' · ' + r.stargazers_count + ' stars'))));
+  }
+  return g;
+}
+
+const SECTIONS = [
+  { id: 'social', title: '📱 Trending on Social Media', fn: buildSocial },
+  { id: 'tech', title: '🤖 What’s New in AI & Technology', fn: buildTech },
+  { id: 'sell', title: '🛒 Trending to Sell Online', fn: buildSell },
+  { id: 'crypto', title: '🪙 Crypto Opportunities', fn: buildCrypto, note: 'Market data, not financial advice. Do your own research.' },
+  { id: 'github', title: '💻 Trending on GitHub', fn: buildGithub },
+];
+
+/* ---------- rendering ---------- */
+function renderGroups(s) {
+  let o = '', any = false;
+  if (s.note) o += '<p class="note">' + esc(s.note) + '</p>';
+  for (const g of s.groups) {
+    if (!g.items || !g.items.length) continue;
+    any = true;
+    o += '<h3>' + esc(g.name) + '</h3><div class="src">' + esc(g.source) + '</div><ol>';
+    for (const i of g.items) {
+      const t = i.url ? '<a href="' + esc(i.url) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a>' : esc(i.title);
+      o += '<li>' + t + (i.meta ? ' <span class="m">— ' + esc(i.meta) + '</span>' : '') + '</li>';
+    }
+    o += '</ol>';
+  }
+  if (!any) o += '<p class="none">No data available right now. Pull to refresh later.</p>';
+  return o;
+}
+function shell(sec) {
+  return '<section id="sec-' + sec.id + '"><h2><span>' + esc(sec.title) + '</span><span class="s"></span></h2><div class="body"></div></section>';
+}
+function fill(id, html, status) {
+  const el = $('sec-' + id);
+  if (!el) return;
+  el.querySelector('.body').innerHTML = html;
+  el.querySelector('.s').textContent = status || '';
+}
+function stampText(ts) {
+  try {
+    return 'Updated ' + new Date(ts).toLocaleString('en-GB', { timeZone: 'Asia/Kuwait', weekday: 'short', day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit', hour12: true }) + ' (Kuwait)';
+  } catch (e) { return 'Updated ' + new Date(ts).toLocaleString(); }
+}
+
+let busy = false;
+async function load(force) {
+  if (busy) return;
+  busy = true;
+  $('refresh').disabled = true;
+  $('stamp').textContent = 'Refreshing…';
+  const out = $('out');
+  out.innerHTML = SECTIONS.map(shell).join('');
+  SECTIONS.forEach((s) => fill(s.id, '<p class="load">Loading…</p>', '…'));
+  const result = {};
+  await Promise.all(SECTIONS.map(async (s) => {
+    const groups = await safe(s.fn);
+    result[s.id] = { id: s.id, title: s.title, note: s.note, groups };
+    fill(s.id, renderGroups(result[s.id]), '');
+  }));
+  const ts = Date.now();
+  try { localStorage.setItem('mb:last', JSON.stringify({ ts, result })); } catch (e) {}
+  $('stamp').textContent = stampText(ts);
+  $('refresh').disabled = false;
+  busy = false;
+}
+
+function showCached() {
+  let c = null;
+  try { c = JSON.parse(localStorage.getItem('mb:last') || 'null'); } catch (e) {}
+  if (!c) return null;
+  $('out').innerHTML = SECTIONS.map(shell).join('');
+  SECTIONS.forEach((s) => c.result[s.id] && fill(s.id, renderGroups(c.result[s.id]), ''));
+  $('stamp').textContent = stampText(c.ts);
+  return c.ts;
+}
+
+/* ---------- UI wiring ---------- */
+document.addEventListener('click', (e) => {
+  const h = e.target.closest('section > h2');
+  if (h) h.parentElement.classList.toggle('collapsed');
+});
+$('refresh').addEventListener('click', () => load(true));
+$('gear').addEventListener('click', () => {
+  const p = $('settings');
+  const open = p.style.display !== 'block';
+  p.style.display = open ? 'block' : 'none';
+  if (open) { const s = settings(); $('geo').value = s.geo; $('ytkey').value = s.ytkey; }
+});
+$('save').addEventListener('click', () => {
+  const geo = ($('geo').value || 'KW').trim().toUpperCase().slice(0, 2);
+  try { localStorage.setItem('mb:settings', JSON.stringify({ geo, ytkey: $('ytkey').value.trim() })); } catch (e) {}
+  $('settings').style.display = 'none';
+  load(true);
+});
+
+const last = showCached();
+if (!last || Date.now() - last > 3 * 3600 * 1000) load(false);
+</script>
+</body>
+</html>

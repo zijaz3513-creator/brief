@@ -1,0 +1,10 @@
+{
+  "appId": "com.aeonabaya.morningbrief",
+  "appName": "Morning Brief",
+  "webDir": "www",
+  "plugins": {
+    "CapacitorHttp": {
+      "enabled": true
+    }
+  }
+}
