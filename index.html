@@ -167,6 +167,34 @@ main{max-width:760px;margin:0 auto;padding:4px 12px 48px}
 .more{width:100%;margin-top:6px}
 .ibar{height:4px;border-radius:4px;background:var(--hair);margin-top:6px;overflow:hidden}
 .ibar i{display:block;height:100%;border-radius:4px;background:var(--v-up)}
+
+/* ----- Social by platform ----- */
+#social-dash:not([data-pf="all"]) .pf-all,#social-dash:not([data-pf="all"]) .pf-block{display:none}
+#social-dash[data-pf="tiktok"] [data-block="tiktok"]{display:block}
+#social-dash[data-pf="youtube"] [data-block="youtube"]{display:block}
+#social-dash[data-pf="x"] [data-block="x"]{display:block}
+#social-dash[data-pf="reddit"] [data-block="reddit"]{display:block}
+#social-dash[data-pf="google"] [data-block="google"]{display:block}
+#social-dash[data-pf="instagram"] [data-block="instagram"]{display:block}
+.glance{list-style:none;margin:0;padding:0}
+.glance li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--hair);cursor:pointer}
+.glance li:first-child{border-top:0}
+.glance .gt{flex:1;min-width:0;font-weight:600;font-size:13.5px;word-break:break-word}
+.muted{color:var(--sub);font-weight:500}
+.pf{display:inline-block;flex:none;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--chip);color:var(--text);min-width:76px;text-align:center}
+.vizcard h4 .pf{min-width:0;margin-right:4px}
+.pf::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;background:var(--sub)}
+.pf-tiktok::before{background:#ff2c55}.pf-youtube::before{background:#ff0000}.pf-x::before{background:var(--text)}
+.pf-reddit::before{background:#ff4500}.pf-google::before{background:#4285f4}.pf-instagram::before{background:#d62976}
+.vizcard h5{margin:14px 0 4px;font-size:13px;font-weight:650}
+.plist{list-style:none;margin:0;padding:0}
+.plist li{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--hair)}
+.plist li:first-child{border-top:0}
+.pbody{flex:1;min-width:0}
+.pbody a{color:var(--text);font-weight:600;word-break:break-word}
+.pstats{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:5px;font-size:13px;font-weight:650;font-variant-numeric:tabular-nums}
+.pstats em{display:block;font-style:normal;font-size:11px;color:var(--sub);font-weight:500}
+.tag{display:inline-block;font-size:11px;font-weight:650;padding:1px 7px;border-radius:999px;background:var(--badge-bg);color:var(--badge-fg);vertical-align:1px}
 </style>
 </head>
 <body>
@@ -209,7 +237,10 @@ main{max-width:760px;margin:0 auto;padding:4px 12px 48px}
     <input type="text" id="geo" maxlength="2" autocapitalize="characters">
     <label for="ytkey">YouTube Data API key (optional, free)</label>
     <input type="text" id="ytkey" autocapitalize="none" autocomplete="off" autocorrect="off">
-    <p class="hint">Without a key, YouTube shows news coverage instead of the live chart.</p>
+    <p class="hint">Optional. Without a key, YouTube trends come from kworb.net.</p>
+    <label for="dataurl">Trends data URL (for using the page in a browser)</label>
+    <input type="text" id="dataurl" autocapitalize="none" autocomplete="off" autocorrect="off" placeholder="https://raw.githubusercontent.com/USER/REPO/main/data/cache.json">
+    <p class="hint">Browsers block most trend sites. Paste the raw link to data/cache.json from your GitHub repo. The phone app does not need this.</p>
     <div class="row-actions">
       <button class="btn primary" id="save">Save</button>
       <button class="btn secondary" id="cancel">Close</button>
@@ -233,7 +264,7 @@ const isEnglish = (s) => !NON_LATIN.test(String(s ?? ''));
 function settings() {
   let s = {};
   try { s = JSON.parse(localStorage.getItem('mb:settings') || '{}'); } catch (e) {}
-  return { geo: (s.geo || 'KW').toUpperCase(), ytkey: s.ytkey || '' };
+  return { geo: (s.geo || 'KW').toUpperCase(), ytkey: s.ytkey || '', dataUrl: s.dataUrl || '' };
 }
 
 async function http(url, headers) {
@@ -246,7 +277,31 @@ async function http(url, headers) {
   })();
   return Promise.race([req, timer]);
 }
-async function httpGet(url, headers) { try { return await http(url, headers); } catch (e) { return null; } }
+/* Browsers block most trend sites (CORS). The phone app reads them directly; in a browser we fall back to
+   data/cache.json, which a GitHub Action refreshes every hour (see scripts/collect.mjs in the repo). */
+let feedPromise = null;
+function feedUrl() {
+  const u = settings().dataUrl;
+  if (u) return u;
+  return /^https?:$/.test(location.protocol) ? 'data/cache.json' : '';
+}
+function loadFeed() {
+  if (!feedPromise) {
+    const u = feedUrl();
+    feedPromise = u ? http(u + (u.includes('?') ? '&' : '?') + 't=' + Math.floor(Date.now() / 3e5))
+      .then((t) => JSON.parse(t)).catch(() => null) : Promise.resolve(null);
+  }
+  return feedPromise;
+}
+async function fromFeed(url) {
+  const f = await loadFeed();
+  if (!f || !f.pages) return null;
+  if (f.pages[url]) return f.pages[url];
+  try { return f.pages[new URL(url).href] || null; } catch (e) { return null; }
+}
+async function httpGet(url, headers) {
+  try { return await http(url, headers); } catch (e) { return await fromFeed(url); }
+}
 async function httpJson(url, headers) {
   const t = await httpGet(url, headers);
   if (!t) return null;
@@ -324,36 +379,175 @@ async function trends24(path) {
 }
 
 /* ---------- collectors ---------- */
+/* ----- Social: what is trending, split by platform ----- */
+const PLATFORMS = [
+  { id: 'tiktok', name: 'TikTok', what: 'Trending sounds' },
+  { id: 'youtube', name: 'YouTube', what: 'Trending videos' },
+  { id: 'x', name: 'X (Twitter)', what: 'Trending topics' },
+  { id: 'reddit', name: 'Reddit', what: 'Top posts today' },
+  { id: 'google', name: 'Google', what: 'Top searches' },
+  { id: 'instagram', name: 'Instagram', what: 'Trend reports' },
+];
+let socialPf = 'all';
+const num = (s) => { const m = String(s || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
+const parseHtml = (h) => new DOMParser().parseFromString(h, 'text/html');
+const txt = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
+
+/* TikTok: tokchart.com public chart of the most-used sounds right now */
+async function tiktokSounds(geo) {
+  const h = await httpGet('https://tokchart.com/');
+  if (!h) return [];
+  const rows = Array.from(parseHtml(h).querySelectorAll('tr[data-sound-id]')).slice(0, 15);
+  return rows.map((r) => {
+    const td = r.children, id = r.getAttribute('data-sound-id');
+    const a = td[1] && td[1].querySelector('a'), au = td[1] && td[1].querySelector('span');
+    const title = txt(a) || txt(td[1]);
+    const growth = (txt(td[4]).match(/([+-]?[\d.]+)\s*%/) || [])[1];
+    const vids = txt(td[3]).split(' ').pop();
+    const codes = new Set((txt(td[9]).match(/\b[A-Z]{2}\b/g) || []));
+    const song = txt(td[2]);
+    const local = codes.has(geo) || (geo === 'GB' && codes.has('UK'));
+    const meta = [txt(au), song ? '♪ ' + song.slice(0, 50) : ''].filter(Boolean).join(' · ');
+    return Object.assign(item(title, 'https://www.tiktok.com/music/x-' + id, meta), {
+      score: num(txt(td[0])), stats: [
+        ['Score', fmtN(num(txt(td[0]))) + '/1000'],
+        ['Videos', fmtN(num(vids))],
+        ['Growth', growth != null ? fmtP(parseFloat(growth)) : '–'],
+        ['Countries', String(codes.size)],
+      ], tag: local ? 'Trending in ' + geo : '' });
+  }).filter((i) => i.title);
+}
+
+/* YouTube: kworb.net (official YouTube trending, per country + worldwide). With an API key, live view counts. */
+async function youtubeTrends(geo, ytkey) {
+  if (ytkey) {
+    const d = await httpJson('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&maxResults=15&regionCode=' + geo + '&key=' + encodeURIComponent(ytkey));
+    const vs = ((d && d.items) || []).filter((v) => isEnglish(v.snippet.title));
+    if (vs.length) return { label: 'YouTube Data API · most popular in ' + geo, items: vs.slice(0, 12).map((v, i) => Object.assign(item(v.snippet.title, 'https://youtu.be/' + v.id, v.snippet.channelTitle), {
+      score: Number(v.statistics.viewCount || 0), stats: [['Rank', '#' + (i + 1)], ['Views', fmtN(Number(v.statistics.viewCount || 0))], ['Likes', fmtN(Number(v.statistics.likeCount || 0))]] })) };
+  }
+  const cc = (geo === 'GB' ? 'uk' : geo.toLowerCase());
+  const [loc, ww] = await Promise.all([httpGet('https://kworb.net/youtube/trending/' + cc + '.html'), httpGet('https://kworb.net/youtube/trending_overall.html')]);
+  const out = [];
+  if (loc) {
+    const t = parseHtml(loc).querySelector('table');
+    Array.from(t ? t.querySelectorAll('tbody tr') : []).forEach((r) => {
+      const a = r.querySelector('a'); if (!a) return;
+      const title = txt(a); if (!isEnglish(title)) return;
+      const ch = txt(r.children[1]);
+      out.push(Object.assign(item(title, a.getAttribute('href'), ''), { score: 0, stats: [['Rank in ' + geo, '#' + txt(r.children[0])], ['Move', ch === 'NEW' ? 'New today' : ch === '=' ? 'Same' : (ch.startsWith('-') ? '▼ ' + ch.slice(1) : '▲ ' + ch.replace('+', ''))]] }));
+    });
+  }
+  const world = [];
+  if (ww) {
+    Array.from(parseHtml(ww).querySelectorAll('table tbody tr')).forEach((r) => {
+      const a = r.querySelector('a'); if (!a) return;
+      const title = txt(a); if (!isEnglish(title)) return;
+      const id = (a.getAttribute('href').match(/video\/([^/.]+)\.html/) || [])[1];
+      const n = num(txt(r.children[3]));
+      world.push(Object.assign(item(title, id ? 'https://youtu.be/' + id : 'https://kworb.net' + a.getAttribute('href'), txt(r.children[4])), {
+        score: n, stats: [['Worldwide', '#' + txt(r.children[0])], ['Countries', String(n)]] }));
+    });
+  }
+  return { label: 'kworb.net · YouTube trending in ' + geo + ' (English titles)', items: out.slice(0, 10), world: world.slice(0, 10) };
+}
+
+/* X: trends24.in hourly lists. "Hours trending" = how many of the last 24 hourly lists include the topic. */
+async function xTrends(path) {
+  const h = await httpGet('https://trends24.in/' + path + '/');
+  if (!h) return [];
+  const lists = h.split('class="trend-card__list"').slice(1).map((s) => s.split('</ol>')[0]);
+  const names = (s) => Array.from(s.matchAll(/class="trend-link"[^>]*>([^<]+)</g)).map((m) => decode(m[1]).trim());
+  const hours = {}; lists.slice(0, 24).forEach((l) => new Set(names(l)).forEach((n) => { hours[n] = (hours[n] || 0) + 1; }));
+  return (lists.length ? names(lists[0]) : []).filter(isEnglish).slice(0, 15).map((t, i) =>
+    Object.assign(item(t, 'https://x.com/search?q=' + encodeURIComponent(t)), { score: hours[t] || 1, stats: [['Rank now', '#' + (i + 1)], ['Hours trending', (hours[t] || 1) + ' of 24']] }));
+}
+
+async function redditPopular() {
+  const d = await httpJson('https://www.reddit.com/r/popular/top.json?t=day&limit=25');
+  const ps = ((d && d.data && d.data.children) || []).map((k) => k.data).filter((p) => p && p.title && !p.over_18 && isEnglish(p.title));
+  if (ps.length) return ps.slice(0, 12).map((p) => Object.assign(item(p.title, 'https://www.reddit.com' + p.permalink, 'r/' + p.subreddit),
+    { score: p.score, stats: [['Upvotes', fmtN(p.score)], ['Comments', fmtN(p.num_comments)]] }));
+  return (await rss('https://www.reddit.com/r/popular/top/.rss?t=day', 12)).map((i) => Object.assign(i, { score: 0 }));
+}
+
+async function googleSearches(geo) {
+  const gt = await googleTrendsEnglish(geo, 12);
+  return { label: gt.label, items: gt.items.map((i) => { const n = trafficNum(i.meta); return Object.assign(i, { score: n, meta: i.meta.replace(/^[^·]*·\s*/, ''), stats: [['Searches', n ? fmtN(n) + '+' : '–']] }); }) };
+}
+
+async function instagramReports() {
+  const q = '"Instagram" (trending audio OR reels trends OR trending on Instagram)';
+  return (await rss('https://news.google.com/rss/search?q=' + encodeURIComponent(q + ' when:7d') + '&hl=en&gl=US&ceid=US:en', 8)).map((i) => Object.assign(i, { score: 0 }));
+}
+
 async function buildSocial() {
   const { geo, ytkey } = settings();
-  const [yt, xk, others] = await Promise.all([
-    (async () => {
-      if (!ytkey) return [];
-      const d = await httpJson('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&maxResults=15&regionCode=' + geo + '&key=' + encodeURIComponent(ytkey));
-      return ((d && d.items) || []).map((v) => item(v.snippet.title, 'https://youtu.be/' + v.id,
-        v.snippet.channelTitle + ' · ' + Number((v.statistics && v.statistics.viewCount) || 0).toLocaleString('en-US') + ' views'));
-    })(),
-    trends24('kuwait'),
-    Promise.all([['TikTok', 'TikTok trend'], ['Instagram', 'Instagram trend'], ['Facebook', 'Facebook Meta trending'], ['LinkedIn', 'LinkedIn trending']]
-      .map(async ([name, q]) => group(name, 'Google News (no public trending API)', await news(q)))),
+  const xpath = { KW: 'kuwait', US: 'united-states', GB: 'united-kingdom', AE: 'united-arab-emirates', SA: 'saudi-arabia', QA: 'qatar', BH: 'bahrain', OM: 'oman', IN: 'india' }[geo] || 'united-states';
+  const [tt, yt, xl, rd, gg, ig] = await Promise.all([
+    safe(() => tiktokSounds(geo)), safe(() => youtubeTrends(geo, ytkey)), safe(() => xTrends(xpath)),
+    safe(redditPopular), safe(() => googleSearches(geo)), safe(instagramReports),
   ]);
-  const g = [];
-  g.push(yt.length ? group('YouTube', 'YouTube Data API · most popular, ' + geo + ' (English titles)', yt.slice(0, 10))
-    : group('YouTube', 'Google News (add a YouTube key in Settings for the live chart)', await news('YouTube trending video')));
-  let x = xk, label = 'trends24.in · Kuwait (English only)';
-  if (x.length < 8) {
-    const more = await Promise.all([trends24('united-states'), trends24('united-kingdom')]);
-    x = uniqBy(x.concat(...more), (i) => i.title.toLowerCase());
-    label = 'trends24.in · Kuwait + US/UK (English only)';
+  let x = xl, xLabel = 'trends24.in · ' + geo + ' right now (English only)';
+  if (x.length < 6 && xpath !== 'united-states') {
+    const us = await safe(() => xTrends('united-states'));
+    x = uniqBy(x.concat(us.map((i) => Object.assign(i, { tag: 'US' }))), (i) => i.title.toLowerCase()).slice(0, 15);
+    xLabel = 'trends24.in · ' + geo + ' + US right now (English only)';
   }
-  x = x.slice(0, 12);
-  if (x.length) g.push(group('X (Twitter)', label, x));
-  else {
-    const gt = await googleTrendsEnglish(geo, 10);
-    g.push(group('X (Twitter)', 'Google Trends · ' + gt.label, gt.items));
-  }
-  return g.concat(others);
+  const P = {
+    tiktok: { source: 'tokchart.com · most-used TikTok sounds worldwide right now', items: tt },
+    youtube: { source: yt.label || 'kworb.net', items: yt.items || [], world: yt.world || [] },
+    x: { source: xLabel, items: x },
+    reddit: { source: 'Reddit · r/popular, top today', items: rd },
+    google: { source: 'Google Trends · ' + (gg.label || geo) + ' · approx. searches', items: gg.items || [] },
+    instagram: { source: 'Google News · Instagram trend reports from the last 7 days (Instagram has no public trending list)', items: ig },
+  };
+  return [{ type: 'socialDash', name: 'social', source: '', items: [{ title: 'x' }], platforms: P }];
 }
+
+function socialList(items, unit) {
+  const mx = Math.max(1, ...items.map((i) => i.score || 0));
+  return '<ol class="plist">' + items.map((i, k) => '<li><span class="rk">' + (k + 1) + '</span><div class="pbody">' +
+    (i.url ? '<a href="' + esc(i.url) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a>' : '<b>' + esc(i.title) + '</b>') +
+    (i.tag ? ' <span class="tag">' + esc(i.tag) + '</span>' : '') +
+    (i.meta ? '<div class="sub">' + esc(i.meta) + '</div>' : '') +
+    (i.stats ? '<div class="pstats">' + i.stats.map(([k2, v]) => '<span><em>' + esc(k2) + '</em>' + esc(v) + '</span>').join('') + '</div>' : '') +
+    (i.score ? '<div class="ibar"><i style="width:' + Math.max(3, Math.round(i.score / mx * 100)) + '%"></i></div>' : '') +
+    '</div></li>').join('') + '</ol>';
+}
+function renderSocialDash(g) {
+  const P = g.platforms;
+  let o = '<div class="dash" id="social-dash" data-pf="' + socialPf + '">';
+  o += '<div class="chips">' + [{ id: 'all', name: 'All platforms' }].concat(PLATFORMS).map((p) =>
+    '<button class="chip' + (p.id === socialPf ? ' on' : '') + '" data-pf="' + p.id + '">' + esc(p.name) + '</button>').join('') + '</div>';
+  /* At a glance: the #1 item on every platform */
+  o += '<div class="vizcard pf-all"><h4>Number 1 on each platform right now</h4><div class="vsub">Tap a platform above to see its full list</div><ul class="glance">';
+  PLATFORMS.forEach((p) => {
+    const top = (P[p.id] && P[p.id].items || [])[0];
+    const stat = top && top.stats ? top.stats.find((s) => !/^Rank/.test(s[0])) : null;
+    o += '<li data-go="' + p.id + '"><span class="pf pf-' + p.id + '">' + esc(p.name) + '</span><div class="gt">' +
+      (top ? esc(top.title.length > 70 ? top.title.slice(0, 67) + '…' : top.title) : '<span class="muted">Not available right now</span>') +
+      '<div class="sub">' + esc(p.what) + (stat ? ' · ' + esc(stat[0]) + ': ' + esc(stat[1]) : '') + '</div></div></li>';
+  });
+  o += '</ul></div>';
+  PLATFORMS.forEach((p) => {
+    const d = P[p.id] || { items: [] };
+    o += '<div class="vizcard pf-block" data-block="' + p.id + '"><h4><span class="pf pf-' + p.id + '">' + esc(p.name) + '</span> ' + esc(p.what) + '</h4><div class="vsub">' + esc(d.source || '') + '</div>';
+    o += d.items && d.items.length ? socialList(d.items) : '<div class="empty">No data from this source right now. Tap Refresh to try again.</div>';
+    if (p.id === 'youtube' && d.world && d.world.length) o += '<h5>Trending worldwide · number of countries</h5>' + socialList(d.world);
+    o += '</div>';
+  });
+  return o + '</div>';
+}
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('#social-dash .chip, #social-dash .glance li');
+  if (!c) return;
+  socialPf = c.dataset.pf || c.dataset.go;
+  const el = $('social-dash');
+  el.dataset.pf = socialPf;
+  el.querySelectorAll('.chip').forEach((b) => b.classList.toggle('on', b.dataset.pf === socialPf));
+  if (c.dataset.go) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 async function buildTech() {
   const [hn, tc, vg, ars] = await Promise.all([
@@ -711,7 +905,7 @@ async function buildGithub() {
 }
 
 const SECTIONS = [
-  { id: 'social', title: 'Trending on social media', fn: buildSocial },
+  { id: 'social', title: 'Trending on social media', fn: buildSocial, note: 'Lists are pulled live from free public sources each time you tap Refresh. Facebook and LinkedIn do not publish trending lists, so they are not shown.' },
   { id: 'tech', title: 'AI and technology', fn: buildTech },
   { id: 'sell', title: 'Trending to sell online', fn: buildSell },
   { id: 'jobs', title: 'High-paying remote jobs', fn: buildJobs, note: 'Salaries are shown as listed by the employer. Many senior roles do not list pay.' },
@@ -725,6 +919,7 @@ function renderGroups(s) {
   let o = '', any = false;
   for (const g of s.groups) {
     if (g.type === 'sellDash') { any = true; o += renderSellDash(g); continue; }
+    if (g.type === 'socialDash') { any = true; o += renderSocialDash(g); continue; }
     if (!g.items || !g.items.length) continue;
     any = true;
     o += '<div class="group"><h3>' + esc(g.name) + '</h3><div class="src">' + esc(g.source) + '</div><ul class="rows">';
@@ -831,21 +1026,22 @@ $('tabs').addEventListener('click', (e) => {
   applyTab();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
-$('refresh').addEventListener('click', () => load());
+$('refresh').addEventListener('click', () => { feedPromise = null; load(); });
 $('theme').addEventListener('click', () => applyTheme(isDark() ? 'light' : 'dark'));
 $('seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) applyTheme(b.dataset.mode); });
 function toggleSettings(force) {
   const p = $('settings');
   const open = force === undefined ? p.style.display !== 'block' : force;
   p.style.display = open ? 'block' : 'none';
-  if (open) { const s = settings(); $('geo').value = s.geo; $('ytkey').value = s.ytkey; refreshThemeUi(); p.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  if (open) { const s = settings(); $('geo').value = s.geo; $('ytkey').value = s.ytkey; $('dataurl').value = s.dataUrl; refreshThemeUi(); p.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 }
 $('gear').addEventListener('click', () => toggleSettings());
 $('cancel').addEventListener('click', () => toggleSettings(false));
 $('save').addEventListener('click', () => {
   const geo = ($('geo').value || 'KW').trim().toUpperCase().slice(0, 2);
-  try { localStorage.setItem('mb:settings', JSON.stringify({ geo, ytkey: $('ytkey').value.trim() })); } catch (e) {}
+  try { localStorage.setItem('mb:settings', JSON.stringify({ geo, ytkey: $('ytkey').value.trim(), dataUrl: $('dataurl').value.trim() })); } catch (e) {}
   toggleSettings(false);
+  feedPromise = null;
   load();
 });
 
