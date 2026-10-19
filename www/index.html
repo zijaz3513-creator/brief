@@ -104,6 +104,97 @@ main{max-width:760px;margin:0 auto;padding:4px 12px 48px}
 .seg button+button{border-left:1px solid var(--border)}
 .seg button.on{background:var(--primary);color:#fff}
 .row-actions{margin-top:16px;display:flex;gap:8px}
+
+/* ----- To sell dashboard ----- */
+:root{--v-up:#2a78d6;--v-down:#e34948;--v-axis:#b8b7b2;--v-grid:#e6e5e1;--s1:#2a78d6;--s2:#eb6834;--s3:#1baf7a;--s4:#eda100;
+  --hot-bg:#fde2dd;--hot-fg:#8e1f0b;--rise-bg:#d9e8fb;--rise-fg:#184f95;--cool-bg:#ececec;--cool-fg:#5c5c5c}
+:root[data-theme="dark"]{--v-up:#3987e5;--v-down:#e66767;--v-axis:#5a5a57;--v-grid:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+  --hot-bg:#5a1f14;--hot-fg:#ffc9bd;--rise-bg:#16345c;--rise-fg:#b7d3f6;--cool-bg:#3a3a3a;--cool-fg:#c3c2b7}
+@media (prefers-color-scheme: dark){:root:not([data-theme]){--v-up:#3987e5;--v-down:#e66767;--v-axis:#5a5a57;--v-grid:#383835;--s1:#3987e5;--s2:#d95926;--s3:#199e70;--s4:#c98500;
+  --hot-bg:#5a1f14;--hot-fg:#ffc9bd;--rise-bg:#16345c;--rise-fg:#b7d3f6;--cool-bg:#3a3a3a;--cool-fg:#c3c2b7}}
+.dash{padding:12px 12px 4px}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:10px}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;padding:5px 12px;border-radius:999px;background:var(--chip);font-size:12.5px;font-weight:550}
+.chip.on{background:var(--chip-on);color:var(--chip-on-text)}
+.kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-bottom:12px}
+@media (min-width:620px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kpi{border:1px solid var(--border);border-radius:12px;padding:10px 12px;min-width:0}
+.kpi .k{font-size:11.5px;color:var(--sub);font-weight:600;text-transform:uppercase;letter-spacing:.03em}
+.kpi .v{font-size:22px;font-weight:700;margin-top:2px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kpi .v.sm{font-size:18px;line-height:30px}
+.kpi .v small{font-size:13px;color:var(--sub);font-weight:550}
+.kpi .d{font-size:12px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vizcard{border:1px solid var(--border);border-radius:12px;padding:12px;margin-bottom:12px}
+.vizcard h4{margin:0;font-size:14px;font-weight:650}
+.vsub{font-size:12px;color:var(--sub);margin:2px 0 8px}
+.viz{width:100%;height:auto;display:block}
+.viz .vl{font-size:11.5px;fill:var(--text)}
+.viz .vv{font-size:11px;fill:var(--sub);font-variant-numeric:tabular-nums}
+.viz .vt{font-size:10px;fill:var(--sub)}
+.linewrap{position:relative;touch-action:pan-y}
+.tip{position:absolute;top:4px;width:150px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:6px 8px;font-size:11.5px;
+  box-shadow:0 4px 14px rgba(0,0,0,.15);pointer-events:none}
+.tip div{display:flex;align-items:center;gap:6px;margin-top:2px}
+.tip span{margin-left:auto;font-weight:650;font-variant-numeric:tabular-nums}
+.tip i,.legend i{width:10px;height:3px;border-radius:2px;display:inline-block;flex:none}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:6px;font-size:12px;color:var(--sub)}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.prods{list-style:none;margin:0;padding:0}
+.prods li{padding:10px 0;border-top:1px solid var(--hair)}
+.prods li:first-child{border-top:0}
+.pr-top{display:flex;align-items:center;gap:10px}
+.rk{width:22px;height:22px;border-radius:7px;background:var(--chip);display:grid;place-items:center;font-size:11.5px;font-weight:700;flex:none}
+.pn{flex:1;min-width:0;display:flex;flex-direction:column}
+.pn b{font-size:14px;font-weight:620;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc{font-size:11.5px;color:var(--sub)}
+.spark{flex:none}
+.sig{flex:none;font-size:11.5px;font-weight:650;padding:2px 8px;border-radius:999px;min-width:58px;text-align:center}
+.sig-hot{background:var(--hot-bg);color:var(--hot-fg)}
+.sig-hot::before{content:"▲▲ "}
+.sig-rising{background:var(--rise-bg);color:var(--rise-fg)}
+.sig-rising::before{content:"▲ "}
+.sig-steady{background:var(--badge2-bg);color:var(--badge2-fg)}
+.sig-steady::before{content:"• "}
+.sig-cooling{background:var(--cool-bg);color:var(--cool-fg)}
+.sig-cooling::before{content:"▼ "}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:8px 0 6px 32px;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.stats em{display:block;font-style:normal;font-size:11px;color:var(--sub);font-weight:500}
+.meter{height:4px;border-radius:4px;background:var(--hair);margin-left:32px;overflow:hidden}
+.meter i{display:block;height:100%;border-radius:4px;background:var(--primary)}
+.links{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 0 32px}
+.links a{font-size:11.5px;font-weight:600;padding:3px 8px;border-radius:999px;border:1px solid var(--border);color:var(--text)}
+.more{width:100%;margin-top:6px}
+.ibar{height:4px;border-radius:4px;background:var(--hair);margin-top:6px;overflow:hidden}
+.ibar i{display:block;height:100%;border-radius:4px;background:var(--v-up)}
+
+/* ----- Social by platform ----- */
+#social-dash:not([data-pf="all"]) .pf-all,#social-dash:not([data-pf="all"]) .pf-block{display:none}
+#social-dash[data-pf="tiktok"] [data-block="tiktok"]{display:block}
+#social-dash[data-pf="youtube"] [data-block="youtube"]{display:block}
+#social-dash[data-pf="x"] [data-block="x"]{display:block}
+#social-dash[data-pf="reddit"] [data-block="reddit"]{display:block}
+#social-dash[data-pf="google"] [data-block="google"]{display:block}
+#social-dash[data-pf="instagram"] [data-block="instagram"]{display:block}
+.glance{list-style:none;margin:0;padding:0}
+.glance li{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-top:1px solid var(--hair);cursor:pointer}
+.glance li:first-child{border-top:0}
+.glance .gt{flex:1;min-width:0;font-weight:600;font-size:13.5px;word-break:break-word}
+.muted{color:var(--sub);font-weight:500}
+.pf{display:inline-block;flex:none;font-size:11.5px;font-weight:700;padding:2px 8px;border-radius:6px;background:var(--chip);color:var(--text);min-width:76px;text-align:center}
+.vizcard h4 .pf{min-width:0;margin-right:4px}
+.pf::before{content:"";display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:5px;vertical-align:1px;background:var(--sub)}
+.pf-tiktok::before{background:#ff2c55}.pf-youtube::before{background:#ff0000}.pf-x::before{background:var(--text)}
+.pf-reddit::before{background:#ff4500}.pf-google::before{background:#4285f4}.pf-instagram::before{background:#d62976}
+.vizcard h5{margin:14px 0 4px;font-size:13px;font-weight:650}
+.plist{list-style:none;margin:0;padding:0}
+.plist li{display:flex;gap:10px;padding:10px 0;border-top:1px solid var(--hair)}
+.plist li:first-child{border-top:0}
+.pbody{flex:1;min-width:0}
+.pbody a{color:var(--text);font-weight:600;word-break:break-word}
+.pstats{display:flex;flex-wrap:wrap;gap:4px 16px;margin-top:5px;font-size:13px;font-weight:650;font-variant-numeric:tabular-nums}
+.pstats em{display:block;font-style:normal;font-size:11px;color:var(--sub);font-weight:500}
+.tag{display:inline-block;font-size:11px;font-weight:650;padding:1px 7px;border-radius:999px;background:var(--badge-bg);color:var(--badge-fg);vertical-align:1px}
 </style>
 </head>
 <body>
@@ -146,7 +237,10 @@ main{max-width:760px;margin:0 auto;padding:4px 12px 48px}
     <input type="text" id="geo" maxlength="2" autocapitalize="characters">
     <label for="ytkey">YouTube Data API key (optional, free)</label>
     <input type="text" id="ytkey" autocapitalize="none" autocomplete="off" autocorrect="off">
-    <p class="hint">Without a key, YouTube shows news coverage instead of the live chart.</p>
+    <p class="hint">Optional. Without a key, YouTube trends come from kworb.net.</p>
+    <label for="dataurl">Trends data URL (for using the page in a browser)</label>
+    <input type="text" id="dataurl" autocapitalize="none" autocomplete="off" autocorrect="off" placeholder="https://raw.githubusercontent.com/USER/REPO/main/data/cache.json">
+    <p class="hint">Browsers block most trend sites. Paste the raw link to data/cache.json from your GitHub repo. The phone app does not need this.</p>
     <div class="row-actions">
       <button class="btn primary" id="save">Save</button>
       <button class="btn secondary" id="cancel">Close</button>
@@ -170,7 +264,7 @@ const isEnglish = (s) => !NON_LATIN.test(String(s ?? ''));
 function settings() {
   let s = {};
   try { s = JSON.parse(localStorage.getItem('mb:settings') || '{}'); } catch (e) {}
-  return { geo: (s.geo || 'KW').toUpperCase(), ytkey: s.ytkey || '' };
+  return { geo: (s.geo || 'KW').toUpperCase(), ytkey: s.ytkey || '', dataUrl: s.dataUrl || '' };
 }
 
 async function http(url, headers) {
@@ -183,7 +277,31 @@ async function http(url, headers) {
   })();
   return Promise.race([req, timer]);
 }
-async function httpGet(url, headers) { try { return await http(url, headers); } catch (e) { return null; } }
+/* Browsers block most trend sites (CORS). The phone app reads them directly; in a browser we fall back to
+   data/cache.json, which a GitHub Action refreshes every hour (see scripts/collect.mjs in the repo). */
+let feedPromise = null;
+function feedUrl() {
+  const u = settings().dataUrl;
+  if (u) return u;
+  return /^https?:$/.test(location.protocol) ? 'data/cache.json' : '';
+}
+function loadFeed() {
+  if (!feedPromise) {
+    const u = feedUrl();
+    feedPromise = u ? http(u + (u.includes('?') ? '&' : '?') + 't=' + Math.floor(Date.now() / 3e5))
+      .then((t) => JSON.parse(t)).catch(() => null) : Promise.resolve(null);
+  }
+  return feedPromise;
+}
+async function fromFeed(url) {
+  const f = await loadFeed();
+  if (!f || !f.pages) return null;
+  if (f.pages[url]) return f.pages[url];
+  try { return f.pages[new URL(url).href] || null; } catch (e) { return null; }
+}
+async function httpGet(url, headers) {
+  try { return await http(url, headers); } catch (e) { return await fromFeed(url); }
+}
 async function httpJson(url, headers) {
   const t = await httpGet(url, headers);
   if (!t) return null;
@@ -261,36 +379,175 @@ async function trends24(path) {
 }
 
 /* ---------- collectors ---------- */
+/* ----- Social: what is trending, split by platform ----- */
+const PLATFORMS = [
+  { id: 'tiktok', name: 'TikTok', what: 'Trending sounds' },
+  { id: 'youtube', name: 'YouTube', what: 'Trending videos' },
+  { id: 'x', name: 'X (Twitter)', what: 'Trending topics' },
+  { id: 'reddit', name: 'Reddit', what: 'Top posts today' },
+  { id: 'google', name: 'Google', what: 'Top searches' },
+  { id: 'instagram', name: 'Instagram', what: 'Trend reports' },
+];
+let socialPf = 'all';
+const num = (s) => { const m = String(s || '').replace(/,/g, '').match(/-?\d+(\.\d+)?/); return m ? parseFloat(m[0]) : 0; };
+const parseHtml = (h) => new DOMParser().parseFromString(h, 'text/html');
+const txt = (el) => (el ? el.textContent.replace(/\s+/g, ' ').trim() : '');
+
+/* TikTok: tokchart.com public chart of the most-used sounds right now */
+async function tiktokSounds(geo) {
+  const h = await httpGet('https://tokchart.com/');
+  if (!h) return [];
+  const rows = Array.from(parseHtml(h).querySelectorAll('tr[data-sound-id]')).slice(0, 15);
+  return rows.map((r) => {
+    const td = r.children, id = r.getAttribute('data-sound-id');
+    const a = td[1] && td[1].querySelector('a'), au = td[1] && td[1].querySelector('span');
+    const title = txt(a) || txt(td[1]);
+    const growth = (txt(td[4]).match(/([+-]?[\d.]+)\s*%/) || [])[1];
+    const vids = txt(td[3]).split(' ').pop();
+    const codes = new Set((txt(td[9]).match(/\b[A-Z]{2}\b/g) || []));
+    const song = txt(td[2]);
+    const local = codes.has(geo) || (geo === 'GB' && codes.has('UK'));
+    const meta = [txt(au), song ? '♪ ' + song.slice(0, 50) : ''].filter(Boolean).join(' · ');
+    return Object.assign(item(title, 'https://www.tiktok.com/music/x-' + id, meta), {
+      score: num(txt(td[0])), stats: [
+        ['Score', fmtN(num(txt(td[0]))) + '/1000'],
+        ['Videos', fmtN(num(vids))],
+        ['Growth', growth != null ? fmtP(parseFloat(growth)) : '–'],
+        ['Countries', String(codes.size)],
+      ], tag: local ? 'Trending in ' + geo : '' });
+  }).filter((i) => i.title);
+}
+
+/* YouTube: kworb.net (official YouTube trending, per country + worldwide). With an API key, live view counts. */
+async function youtubeTrends(geo, ytkey) {
+  if (ytkey) {
+    const d = await httpJson('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&maxResults=15&regionCode=' + geo + '&key=' + encodeURIComponent(ytkey));
+    const vs = ((d && d.items) || []).filter((v) => isEnglish(v.snippet.title));
+    if (vs.length) return { label: 'YouTube Data API · most popular in ' + geo, items: vs.slice(0, 12).map((v, i) => Object.assign(item(v.snippet.title, 'https://youtu.be/' + v.id, v.snippet.channelTitle), {
+      score: Number(v.statistics.viewCount || 0), stats: [['Rank', '#' + (i + 1)], ['Views', fmtN(Number(v.statistics.viewCount || 0))], ['Likes', fmtN(Number(v.statistics.likeCount || 0))]] })) };
+  }
+  const cc = (geo === 'GB' ? 'uk' : geo.toLowerCase());
+  const [loc, ww] = await Promise.all([httpGet('https://kworb.net/youtube/trending/' + cc + '.html'), httpGet('https://kworb.net/youtube/trending_overall.html')]);
+  const out = [];
+  if (loc) {
+    const t = parseHtml(loc).querySelector('table');
+    Array.from(t ? t.querySelectorAll('tbody tr') : []).forEach((r) => {
+      const a = r.querySelector('a'); if (!a) return;
+      const title = txt(a); if (!isEnglish(title)) return;
+      const ch = txt(r.children[1]);
+      out.push(Object.assign(item(title, a.getAttribute('href'), ''), { score: 0, stats: [['Rank in ' + geo, '#' + txt(r.children[0])], ['Move', ch === 'NEW' ? 'New today' : ch === '=' ? 'Same' : (ch.startsWith('-') ? '▼ ' + ch.slice(1) : '▲ ' + ch.replace('+', ''))]] }));
+    });
+  }
+  const world = [];
+  if (ww) {
+    Array.from(parseHtml(ww).querySelectorAll('table tbody tr')).forEach((r) => {
+      const a = r.querySelector('a'); if (!a) return;
+      const title = txt(a); if (!isEnglish(title)) return;
+      const id = (a.getAttribute('href').match(/video\/([^/.]+)\.html/) || [])[1];
+      const n = num(txt(r.children[3]));
+      world.push(Object.assign(item(title, id ? 'https://youtu.be/' + id : 'https://kworb.net' + a.getAttribute('href'), txt(r.children[4])), {
+        score: n, stats: [['Worldwide', '#' + txt(r.children[0])], ['Countries', String(n)]] }));
+    });
+  }
+  return { label: 'kworb.net · YouTube trending in ' + geo + ' (English titles)', items: out.slice(0, 10), world: world.slice(0, 10) };
+}
+
+/* X: trends24.in hourly lists. "Hours trending" = how many of the last 24 hourly lists include the topic. */
+async function xTrends(path) {
+  const h = await httpGet('https://trends24.in/' + path + '/');
+  if (!h) return [];
+  const lists = h.split('class="trend-card__list"').slice(1).map((s) => s.split('</ol>')[0]);
+  const names = (s) => Array.from(s.matchAll(/class="trend-link"[^>]*>([^<]+)</g)).map((m) => decode(m[1]).trim());
+  const hours = {}; lists.slice(0, 24).forEach((l) => new Set(names(l)).forEach((n) => { hours[n] = (hours[n] || 0) + 1; }));
+  return (lists.length ? names(lists[0]) : []).filter(isEnglish).slice(0, 15).map((t, i) =>
+    Object.assign(item(t, 'https://x.com/search?q=' + encodeURIComponent(t)), { score: hours[t] || 1, stats: [['Rank now', '#' + (i + 1)], ['Hours trending', (hours[t] || 1) + ' of 24']] }));
+}
+
+async function redditPopular() {
+  const d = await httpJson('https://www.reddit.com/r/popular/top.json?t=day&limit=25');
+  const ps = ((d && d.data && d.data.children) || []).map((k) => k.data).filter((p) => p && p.title && !p.over_18 && isEnglish(p.title));
+  if (ps.length) return ps.slice(0, 12).map((p) => Object.assign(item(p.title, 'https://www.reddit.com' + p.permalink, 'r/' + p.subreddit),
+    { score: p.score, stats: [['Upvotes', fmtN(p.score)], ['Comments', fmtN(p.num_comments)]] }));
+  return (await rss('https://www.reddit.com/r/popular/top/.rss?t=day', 12)).map((i) => Object.assign(i, { score: 0 }));
+}
+
+async function googleSearches(geo) {
+  const gt = await googleTrendsEnglish(geo, 12);
+  return { label: gt.label, items: gt.items.map((i) => { const n = trafficNum(i.meta); return Object.assign(i, { score: n, meta: i.meta.replace(/^[^·]*·\s*/, ''), stats: [['Searches', n ? fmtN(n) + '+' : '–']] }); }) };
+}
+
+async function instagramReports() {
+  const q = '"Instagram" (trending audio OR reels trends OR trending on Instagram)';
+  return (await rss('https://news.google.com/rss/search?q=' + encodeURIComponent(q + ' when:7d') + '&hl=en&gl=US&ceid=US:en', 8)).map((i) => Object.assign(i, { score: 0 }));
+}
+
 async function buildSocial() {
   const { geo, ytkey } = settings();
-  const [yt, xk, others] = await Promise.all([
-    (async () => {
-      if (!ytkey) return [];
-      const d = await httpJson('https://www.googleapis.com/youtube/v3/videos?part=snippet,statistics&chart=mostPopular&maxResults=15&regionCode=' + geo + '&key=' + encodeURIComponent(ytkey));
-      return ((d && d.items) || []).map((v) => item(v.snippet.title, 'https://youtu.be/' + v.id,
-        v.snippet.channelTitle + ' · ' + Number((v.statistics && v.statistics.viewCount) || 0).toLocaleString('en-US') + ' views'));
-    })(),
-    trends24('kuwait'),
-    Promise.all([['TikTok', 'TikTok trend'], ['Instagram', 'Instagram trend'], ['Facebook', 'Facebook Meta trending'], ['LinkedIn', 'LinkedIn trending']]
-      .map(async ([name, q]) => group(name, 'Google News (no public trending API)', await news(q)))),
+  const xpath = { KW: 'kuwait', US: 'united-states', GB: 'united-kingdom', AE: 'united-arab-emirates', SA: 'saudi-arabia', QA: 'qatar', BH: 'bahrain', OM: 'oman', IN: 'india' }[geo] || 'united-states';
+  const [tt, yt, xl, rd, gg, ig] = await Promise.all([
+    safe(() => tiktokSounds(geo)), safe(() => youtubeTrends(geo, ytkey)), safe(() => xTrends(xpath)),
+    safe(redditPopular), safe(() => googleSearches(geo)), safe(instagramReports),
   ]);
-  const g = [];
-  g.push(yt.length ? group('YouTube', 'YouTube Data API · most popular, ' + geo + ' (English titles)', yt.slice(0, 10))
-    : group('YouTube', 'Google News (add a YouTube key in Settings for the live chart)', await news('YouTube trending video')));
-  let x = xk, label = 'trends24.in · Kuwait (English only)';
-  if (x.length < 8) {
-    const more = await Promise.all([trends24('united-states'), trends24('united-kingdom')]);
-    x = uniqBy(x.concat(...more), (i) => i.title.toLowerCase());
-    label = 'trends24.in · Kuwait + US/UK (English only)';
+  let x = xl, xLabel = 'trends24.in · ' + geo + ' right now (English only)';
+  if (x.length < 6 && xpath !== 'united-states') {
+    const us = await safe(() => xTrends('united-states'));
+    x = uniqBy(x.concat(us.map((i) => Object.assign(i, { tag: 'US' }))), (i) => i.title.toLowerCase()).slice(0, 15);
+    xLabel = 'trends24.in · ' + geo + ' + US right now (English only)';
   }
-  x = x.slice(0, 12);
-  if (x.length) g.push(group('X (Twitter)', label, x));
-  else {
-    const gt = await googleTrendsEnglish(geo, 10);
-    g.push(group('X (Twitter)', 'Google Trends · ' + gt.label, gt.items));
-  }
-  return g.concat(others);
+  const P = {
+    tiktok: { source: 'tokchart.com · most-used TikTok sounds worldwide right now', items: tt },
+    youtube: { source: yt.label || 'kworb.net', items: yt.items || [], world: yt.world || [] },
+    x: { source: xLabel, items: x },
+    reddit: { source: 'Reddit · r/popular, top today', items: rd },
+    google: { source: 'Google Trends · ' + (gg.label || geo) + ' · approx. searches', items: gg.items || [] },
+    instagram: { source: 'Google News · Instagram trend reports from the last 7 days (Instagram has no public trending list)', items: ig },
+  };
+  return [{ type: 'socialDash', name: 'social', source: '', items: [{ title: 'x' }], platforms: P }];
 }
+
+function socialList(items, unit) {
+  const mx = Math.max(1, ...items.map((i) => i.score || 0));
+  return '<ol class="plist">' + items.map((i, k) => '<li><span class="rk">' + (k + 1) + '</span><div class="pbody">' +
+    (i.url ? '<a href="' + esc(i.url) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a>' : '<b>' + esc(i.title) + '</b>') +
+    (i.tag ? ' <span class="tag">' + esc(i.tag) + '</span>' : '') +
+    (i.meta ? '<div class="sub">' + esc(i.meta) + '</div>' : '') +
+    (i.stats ? '<div class="pstats">' + i.stats.map(([k2, v]) => '<span><em>' + esc(k2) + '</em>' + esc(v) + '</span>').join('') + '</div>' : '') +
+    (i.score ? '<div class="ibar"><i style="width:' + Math.max(3, Math.round(i.score / mx * 100)) + '%"></i></div>' : '') +
+    '</div></li>').join('') + '</ol>';
+}
+function renderSocialDash(g) {
+  const P = g.platforms;
+  let o = '<div class="dash" id="social-dash" data-pf="' + socialPf + '">';
+  o += '<div class="chips">' + [{ id: 'all', name: 'All platforms' }].concat(PLATFORMS).map((p) =>
+    '<button class="chip' + (p.id === socialPf ? ' on' : '') + '" data-pf="' + p.id + '">' + esc(p.name) + '</button>').join('') + '</div>';
+  /* At a glance: the #1 item on every platform */
+  o += '<div class="vizcard pf-all"><h4>Number 1 on each platform right now</h4><div class="vsub">Tap a platform above to see its full list</div><ul class="glance">';
+  PLATFORMS.forEach((p) => {
+    const top = (P[p.id] && P[p.id].items || [])[0];
+    const stat = top && top.stats ? top.stats.find((s) => !/^Rank/.test(s[0])) : null;
+    o += '<li data-go="' + p.id + '"><span class="pf pf-' + p.id + '">' + esc(p.name) + '</span><div class="gt">' +
+      (top ? esc(top.title.length > 70 ? top.title.slice(0, 67) + '…' : top.title) : '<span class="muted">Not available right now</span>') +
+      '<div class="sub">' + esc(p.what) + (stat ? ' · ' + esc(stat[0]) + ': ' + esc(stat[1]) : '') + '</div></div></li>';
+  });
+  o += '</ul></div>';
+  PLATFORMS.forEach((p) => {
+    const d = P[p.id] || { items: [] };
+    o += '<div class="vizcard pf-block" data-block="' + p.id + '"><h4><span class="pf pf-' + p.id + '">' + esc(p.name) + '</span> ' + esc(p.what) + '</h4><div class="vsub">' + esc(d.source || '') + '</div>';
+    o += d.items && d.items.length ? socialList(d.items) : '<div class="empty">No data from this source right now. Tap Refresh to try again.</div>';
+    if (p.id === 'youtube' && d.world && d.world.length) o += '<h5>Trending worldwide · number of countries</h5>' + socialList(d.world);
+    o += '</div>';
+  });
+  return o + '</div>';
+}
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('#social-dash .chip, #social-dash .glance li');
+  if (!c) return;
+  socialPf = c.dataset.pf || c.dataset.go;
+  const el = $('social-dash');
+  el.dataset.pf = socialPf;
+  el.querySelectorAll('.chip').forEach((b) => b.classList.toggle('on', b.dataset.pf === socialPf));
+  if (c.dataset.go) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
 
 async function buildTech() {
   const [hn, tc, vg, ars] = await Promise.all([
@@ -305,19 +562,241 @@ async function buildTech() {
     group('AI news', 'The Verge AI', vg), group('Tech headlines', 'Ars Technica', ars)];
 }
 
+/* ----- To sell: trending resale products with live numbers + charts -----
+   Interest = daily Wikipedia page views (free, keyless, updated daily) used as a public demand proxy. */
+const WATCH = [
+  ['Abaya', 'Abaya', 'Fashion', 'abaya'],
+  ['Hijab', 'Hijab', 'Fashion', 'hijab'],
+  ['Modest fashion', 'Modest fashion', 'Fashion', 'modest dress'],
+  ['Kaftan', 'Kaftan', 'Fashion', 'kaftan dress'],
+  ['Prayer mat', 'Prayer rug', 'Fashion', 'prayer mat'],
+  ['Tote bag', 'Tote bag', 'Fashion', 'tote bag'],
+  ['K-beauty skincare', 'K-beauty', 'Beauty', 'korean skincare'],
+  ['Sunscreen', 'Sunscreen', 'Beauty', 'sunscreen'],
+  ['Perfume', 'Perfume', 'Beauty', 'perfume'],
+  ['Oud', 'Agarwood', 'Beauty', 'oud perfume'],
+  ['Gua sha', 'Gua sha', 'Beauty', 'gua sha'],
+  ['Collagen', 'Collagen', 'Beauty', 'collagen supplement'],
+  ['Humidifier', 'Humidifier', 'Home', 'humidifier'],
+  ['Space heater', 'Space heater', 'Home', 'space heater'],
+  ['Electric blanket', 'Electric blanket', 'Home', 'electric blanket'],
+  ['Robot vacuum', 'Robotic vacuum cleaner', 'Home', 'robot vacuum'],
+  ['Owala bottle', 'Owala', 'Home', 'owala water bottle'],
+  ['Smart ring', 'Smart ring', 'Tech', 'smart ring'],
+  ['Smartwatch', 'Smartwatch', 'Tech', 'smartwatch'],
+  ['Smart glasses', 'Meta smart glasses', 'Tech', 'smart glasses'],
+  ['Instant camera', 'Instant camera', 'Tech', 'instant camera'],
+  ['Nintendo Switch 2', 'Nintendo Switch 2', 'Tech', 'nintendo switch 2'],
+  ['Power bank', 'Battery pack', 'Tech', 'power bank'],
+  ['Creatine', 'Creatine', 'Fitness', 'creatine'],
+  ['Pickleball', 'Pickleball', 'Fitness', 'pickleball paddle'],
+  ['Weighted vest', 'Weighted vest', 'Fitness', 'weighted vest'],
+  ['Walking pad', 'Treadmill desk', 'Fitness', 'walking pad'],
+  ['Labubu', 'Labubu', 'Collectibles', 'labubu'],
+  ['Pop Mart blind box', 'Pop Mart', 'Collectibles', 'pop mart blind box'],
+  ['Pokémon cards', 'Pokémon Trading Card Game', 'Collectibles', 'pokemon cards'],
+  ['Squishmallows', 'Squishmallows', 'Collectibles', 'squishmallows'],
+  ['Jellycat', 'Jellycat', 'Collectibles', 'jellycat'],
+  ['Matcha', 'Matcha', 'Gifts', 'matcha'],
+  ['Dubai chocolate', 'Dubai chocolate', 'Gifts', 'dubai chocolate'],
+  ['Advent calendar', 'Advent calendar', 'Gifts', 'advent calendar'],
+  ['Halloween costume', 'Halloween costume', 'Gifts', 'halloween costume'],
+];
+const SELL_CATS = ['All', 'Fashion', 'Beauty', 'Home', 'Tech', 'Fitness', 'Collectibles', 'Gifts'];
+let sellCat = 'All', sellData = null, sellAll = false;
+
+const ymd = (d) => d.toISOString().slice(0, 10).replace(/-/g, '');
+const mean = (a) => a.length ? a.reduce((x, y) => x + y, 0) / a.length : 0;
+const pct = (a, b) => (b > 0 ? (a / b - 1) * 100 : null);
+const fmtN = (n) => n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e4 ? Math.round(n / 1e3) + 'k' : n >= 1e3 ? (n / 1e3).toFixed(1) + 'k' : String(Math.round(n));
+const fmtP = (p) => p == null ? '–' : (p >= 0 ? '+' : '−') + Math.abs(p).toFixed(Math.abs(p) < 10 ? 1 : 0) + '%';
+
+async function pool(list, n, fn) {
+  const out = new Array(list.length); let i = 0;
+  await Promise.all(Array.from({ length: n }, async () => { while (i < list.length) { const k = i++; out[k] = await fn(list[k]); } }));
+  return out;
+}
+async function wikiViews(title) {
+  const end = new Date(Date.now() - 864e5), start = new Date(Date.now() - 92 * 864e5);
+  const d = await httpJson('https://wikimedia.org/api/rest_v1/metrics/pageviews/per-article/en.wikipedia/all-access/user/' +
+    encodeURIComponent(title.replace(/ /g, '_')) + '/daily/' + ymd(start) + '/' + ymd(end));
+  return ((d && d.items) || []).map((i) => i.views);
+}
+function signalOf(p) {
+  if (p.m7 == null) return 'Steady';
+  if (p.m7 >= 25 && (p.m30 ?? 0) >= 5) return 'Hot';
+  if (p.m7 >= 10 || (p.m30 ?? 0) >= 20) return 'Rising';
+  if (p.m7 <= -15) return 'Cooling';
+  return 'Steady';
+}
+function rankPct(arr, key) {
+  const vals = arr.map((x) => x[key] ?? -1e9).slice().sort((a, b) => a - b);
+  return (x) => vals.length > 1 ? vals.indexOf(x[key] ?? -1e9) / (vals.length - 1) : 0.5;
+}
+async function trendProducts() {
+  const rows = await pool(WATCH, 6, async ([label, wiki, cat, q]) => {
+    const v = await safe(() => wikiViews(wiki));
+    if (v.length < 60) return null;
+    const avg7 = mean(v.slice(-7)), prev7 = mean(v.slice(-14, -7)), avg30 = mean(v.slice(-30)), prev30 = mean(v.slice(-60, -30));
+    const roll = []; for (let i = v.length - 60; i < v.length; i++) roll.push(Math.round(mean(v.slice(Math.max(0, i - 6), i + 1))));
+    return { label, cat, q, avg7: Math.round(avg7), m7: pct(avg7, prev7), m30: pct(avg30, prev30), spark: roll };
+  });
+  const ps = rows.filter(Boolean);
+  const r7 = rankPct(ps, 'm7'), r30 = rankPct(ps, 'm30'), rv = rankPct(ps, 'avg7');
+  ps.forEach((p) => { p.score = Math.round(100 * (0.5 * r7(p) + 0.3 * r30(p) + 0.2 * rv(p))); p.signal = signalOf(p); });
+  return ps.sort((a, b) => b.score - a.score);
+}
+
+/* Google Trends "200K+" → 200000 so we can draw bars */
+function trafficNum(meta) {
+  const m = String(meta || '').match(/([\d.,]+)\s*([KkMm])?\+?\s*searches/);
+  if (!m) return 0;
+  return parseFloat(m[1].replace(/,/g, '')) * (m[2] ? (/m/i.test(m[2]) ? 1e6 : 1e3) : 1);
+}
+const withBars = (items, valFn) => {
+  const mx = Math.max(1, ...items.map(valFn));
+  return items.map((i) => Object.assign(i, { bar: valFn(i) / mx }));
+};
+async function redditBuzz() {
+  const d = await httpJson('https://www.reddit.com/r/dropship+Flipping+ecommerce+AmazonFBA/top.json?t=week&limit=12');
+  const kids = (d && d.data && d.data.children) || [];
+  if (kids.length) {
+    return withBars(kids.map((k) => k.data).filter((p) => p && p.title).map((p) =>
+      Object.assign(item(p.title, 'https://www.reddit.com' + p.permalink, 'r/' + p.subreddit + ' · ' + fmtN(p.score) + ' upvotes · ' + fmtN(p.num_comments) + ' comments'), { val: p.score })), (i) => i.val);
+  }
+  return rss('https://www.reddit.com/r/dropship/top/.rss?t=week', 8);
+}
+
 async function buildSell() {
   const { geo } = settings();
-  const [a, b, c, d, e] = await Promise.all([
-    rss('https://trends.google.com/trending/rss?geo=' + geo, 10),
-    rss('https://trends.google.com/trending/rss?geo=US', 10),
-    rss('https://www.producthunt.com/feed', 8),
-    rss('https://www.reddit.com/r/dropship/top/.rss?t=day', 8),
-    news('trending products to sell online ecommerce', 8),
+  const [prods, a, b, rd, ph, nw] = await Promise.all([
+    safe(trendProducts),
+    safe(() => rss('https://trends.google.com/trending/rss?geo=' + geo, 10)),
+    safe(() => rss('https://trends.google.com/trending/rss?geo=US', 10)),
+    safe(redditBuzz),
+    safe(() => rss('https://www.producthunt.com/feed', 6)),
+    safe(() => news('trending products to sell online ecommerce', 6)),
   ]);
-  return [group('Trending searches (demand signal)', 'Google Trends · ' + geo + ' (English only)', a), group('Trending searches · US', 'Google Trends · US', b),
-    group('New products launching', 'Product Hunt', c), group('Dropshipping community', 'Reddit r/dropship top today', d),
-    group('Trending products news', 'Google News', e)];
+  const g = [];
+  if (prods.length) g.push({ type: 'sellDash', name: 'dash', source: '', items: [{ title: 'x' }], products: prods, ts: Date.now() });
+  g.push(group('Search demand right now · ' + geo, 'Google Trends · approx. searches (English only)', withBars(a, (i) => trafficNum(i.meta))));
+  g.push(group('Search demand right now · US', 'Google Trends · approx. searches', withBars(b, (i) => trafficNum(i.meta))));
+  g.push(group('Seller community buzz (this week)', 'Reddit · r/dropship, r/Flipping, r/ecommerce, r/AmazonFBA', rd));
+  g.push(group('New products launching', 'Product Hunt', ph));
+  g.push(group('Trending products news', 'Google News', nw));
+  return g;
 }
+
+/* ---------- charts (plain SVG, themed by CSS variables) ---------- */
+function sparkSvg(vals, up) {
+  const w = 96, h = 28, mn = Math.min(...vals), mx = Math.max(...vals), r = mx - mn || 1;
+  const pts = vals.map((v, i) => (i * (w / (vals.length - 1))).toFixed(1) + ',' + (h - 3 - ((v - mn) / r) * (h - 6)).toFixed(1)).join(' ');
+  return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" width="' + w + '" height="' + h + '" aria-hidden="true"><polyline points="' + pts +
+    '" fill="none" stroke="var(' + (up ? '--v-up' : '--v-down') + ')" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>';
+}
+function momentumChart(ps) {
+  const list = ps.filter((p) => p.m7 != null).slice().sort((a, b) => b.m7 - a.m7);
+  const top = list.length > 12 ? list.slice(0, 8).concat(list.slice(-4)) : list;
+  const W = 340, rowH = 24, padL = 118, padR = 52, H = top.length * rowH + 8;
+  const mx = Math.max(10, ...top.map((p) => Math.abs(p.m7)));
+  const neg = top.some((p) => p.m7 < 0);
+  const zero = neg ? padL + (W - padL - padR) / 2 : padL;
+  const span = neg ? (W - padL - padR) / 2 : (W - padL - padR);
+  let s = '<svg class="viz" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Seven day change in interest per product">';
+  s += '<line x1="' + zero + '" y1="0" x2="' + zero + '" y2="' + H + '" stroke="var(--v-axis)" stroke-width="1"/>';
+  top.forEach((p, i) => {
+    const y = i * rowH + 4, len = Math.max(2, Math.abs(p.m7) / mx * span), up = p.m7 >= 0;
+    const x = up ? zero : zero - len;
+    s += '<g><title>' + esc(p.label) + ': ' + fmtP(p.m7) + ' vs previous 7 days</title>' +
+      '<text x="' + (padL - 8) + '" y="' + (y + 15) + '" text-anchor="end" class="vl">' + esc(p.label) + '</text>' +
+      '<rect x="' + x.toFixed(1) + '" y="' + (y + 4) + '" width="' + len.toFixed(1) + '" height="14" rx="4" fill="var(' + (up ? '--v-up' : '--v-down') + ')"/>' +
+      '<text x="' + (up ? x + len + 5 : zero + 5).toFixed(1) + '" y="' + (y + 15) + '" class="vv">' + fmtP(p.m7) + '</text></g>';
+  });
+  return s + '</svg>';
+}
+const SERIES = ['--s1', '--s2', '--s3', '--s4'];
+function lineChart(ps) {
+  const top = ps.slice(0, 4);
+  const W = 340, H = 170, pl = 34, pr = 10, pt = 10, pb = 22, n = top[0].spark.length;
+  const idx = top.map((p) => { const base = mean(p.spark.slice(0, 7)) || 1; return p.spark.map((v) => Math.round(v / base * 100)); });
+  const all = idx.flat(), mn = Math.min(50, ...all), mx = Math.max(150, ...all);
+  const X = (i) => pl + i * (W - pl - pr) / (n - 1), Y = (v) => pt + (1 - (v - mn) / (mx - mn)) * (H - pt - pb);
+  let s = '<svg class="viz line" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Interest over the last 60 days, indexed to 100">';
+  const ticks = [mn, 100, mx].map((v) => Math.round(v));
+  ticks.forEach((t) => { s += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + Y(t).toFixed(1) + '" y2="' + Y(t).toFixed(1) + '" stroke="var(--v-grid)" stroke-width="1"' + (t === 100 ? '' : ' stroke-dasharray="2 3"') + '/>' +
+    '<text x="' + (pl - 5) + '" y="' + (Y(t) + 4).toFixed(1) + '" text-anchor="end" class="vt">' + t + '</text>'; });
+  s += '<text x="' + pl + '" y="' + (H - 6) + '" class="vt">60 days ago</text><text x="' + (W - pr) + '" y="' + (H - 6) + '" text-anchor="end" class="vt">Yesterday</text>';
+  idx.forEach((arr, k) => { s += '<polyline fill="none" stroke="var(' + SERIES[k] + ')" stroke-width="2" stroke-linejoin="round" stroke-linecap="round" points="' + arr.map((v, i) => X(i).toFixed(1) + ',' + Y(v).toFixed(1)).join(' ') + '"/>'; });
+  s += '<line class="xh" x1="0" x2="0" y1="' + pt + '" y2="' + (H - pb) + '" stroke="var(--v-axis)" stroke-width="1" style="display:none"/>';
+  s += '<rect class="hit" x="' + pl + '" y="0" width="' + (W - pl - pr) + '" height="' + H + '" fill="transparent"/></svg>';
+  const legend = '<div class="legend">' + top.map((p, k) => '<span><i style="background:var(' + SERIES[k] + ')"></i>' + esc(p.label) + '</span>').join('') + '</div>';
+  return '<div class="linewrap" data-series=\'' + esc(JSON.stringify({ names: top.map((p) => p.label), idx, n, pl, pr, W })) + '\'>' + s + '<div class="tip" hidden></div></div>' + legend;
+}
+function sellLinks(p) {
+  const q = encodeURIComponent(p.q), geo = settings().geo;
+  return '<div class="links"><a target="_blank" rel="noopener" href="https://www.amazon.com/s?k=' + q + '">Amazon</a>' +
+    '<a target="_blank" rel="noopener" href="https://www.aliexpress.com/w/wholesale-' + q.replace(/%20/g, '-') + '.html">AliExpress</a>' +
+    '<a target="_blank" rel="noopener" href="https://www.tiktok.com/search?q=' + q + '">TikTok</a>' +
+    '<a target="_blank" rel="noopener" href="https://trends.google.com/trends/explore?geo=' + geo + '&q=' + q + '">Trends</a></div>';
+}
+function renderSellDash(g) {
+  sellData = g;
+  const ps = g.products.filter((p) => sellCat === 'All' || p.cat === sellCat);
+  let o = '<div id="sell-dash" class="dash">';
+  o += '<div class="chips">' + SELL_CATS.map((c) => '<button class="chip' + (c === sellCat ? ' on' : '') + '" data-cat="' + c + '">' + c + '</button>').join('') + '</div>';
+  if (!ps.length) return o + '<div class="empty">No data for this category right now.</div></div>';
+  const rising = ps.filter((p) => p.signal === 'Hot' || p.signal === 'Rising');
+  const mover = ps.filter((p) => p.m7 != null).sort((a, b) => b.m7 - a.m7)[0];
+  const demand = ps.slice().sort((a, b) => b.avg7 - a.avg7)[0];
+  const catAvg = {}; g.products.forEach((p) => { if (p.m7 != null) (catAvg[p.cat] = catAvg[p.cat] || []).push(p.m7); });
+  const hotCat = Object.entries(catAvg).map(([c, a]) => [c, mean(a)]).sort((a, b) => b[1] - a[1])[0];
+  o += '<div class="kpis">' +
+    '<div class="kpi"><div class="k">Rising now</div><div class="v">' + rising.length + '<small> / ' + ps.length + '</small></div><div class="d">products up this week</div></div>' +
+    '<div class="kpi"><div class="k">Top mover</div><div class="v">' + fmtP(mover ? mover.m7 : null) + '</div><div class="d">' + esc(mover ? mover.label : '–') + ' · 7 days</div></div>' +
+    '<div class="kpi"><div class="k">Biggest demand</div><div class="v">' + fmtN(demand.avg7) + '</div><div class="d">' + esc(demand.label) + ' · views/day</div></div>' +
+    '<div class="kpi"><div class="k">Hottest category</div><div class="v sm">' + esc(hotCat ? hotCat[0] : '–') + '</div><div class="d">avg ' + fmtP(hotCat ? hotCat[1] : null) + ' this week</div></div></div>';
+  o += '<div class="vizcard"><h4>Momentum this week</h4><div class="vsub">Change in interest, last 7 days vs the 7 before</div>' + momentumChart(ps) + '</div>';
+  o += '<div class="vizcard"><h4>60-day trend · top 4 picks</h4><div class="vsub">Interest indexed to 100 at the start (7-day average). Above 100 = growing.</div>' + lineChart(ps) + '</div>';
+  o += '<div class="vizcard"><h4>Products ranked by trend score</h4><div class="vsub">Score 0–100 = 50% weekly momentum, 30% monthly momentum, 20% demand size</div><ul class="prods">';
+  (sellAll ? ps : ps.slice(0, 10)).forEach((p, i) => {
+    const up = (p.m7 ?? 0) >= 0;
+    o += '<li><div class="pr-top"><span class="rk">' + (i + 1) + '</span><div class="pn"><b>' + esc(p.label) + '</b><span class="pc">' + esc(p.cat) + '</span></div>' +
+      sparkSvg(p.spark, up) + '<span class="sig sig-' + p.signal.toLowerCase() + '">' + p.signal + '</span></div>' +
+      '<div class="stats"><span><em>Score</em>' + p.score + '</span><span><em>Views/day</em>' + fmtN(p.avg7) + '</span><span><em>7 days</em>' + fmtP(p.m7) + '</span><span><em>30 days</em>' + fmtP(p.m30) + '</span></div>' +
+      '<div class="meter"><i style="width:' + p.score + '%"></i></div>' + sellLinks(p) + '</li>';
+  });
+  o += '</ul>' + (ps.length > 10 ? '<button class="btn secondary more" id="sell-more">' + (sellAll ? 'Show top 10' : 'Show all ' + ps.length + ' products') + '</button>' : '') + '</div>';
+  o += '<p class="note">Interest = daily Wikipedia page views for each product, a free public demand signal (worldwide, English). It shows what people are curious about, not sales or profit. Check prices and shipping on the supplier links before you buy stock.</p>';
+  return o + '</div>';
+}
+document.addEventListener('click', (e) => {
+  const c = e.target.closest('#sell-dash .chip'), m = e.target.closest('#sell-more');
+  if ((!c && !m) || !sellData) return;
+  if (c) sellCat = c.dataset.cat; else sellAll = !sellAll;
+  const el = $('sell-dash');
+  if (el) el.outerHTML = renderSellDash(sellData);
+});
+function lineHover(e) {
+  const wrap = e.target.closest && e.target.closest('.linewrap');
+  if (!wrap) return;
+  const svg = wrap.querySelector('svg'), tip = wrap.querySelector('.tip'), xh = wrap.querySelector('.xh');
+  let d; try { d = JSON.parse(wrap.dataset.series); } catch (er) { return; }
+  const r = svg.getBoundingClientRect(), sx = (e.clientX - r.left) * (d.W / r.width);
+  const i = Math.max(0, Math.min(d.n - 1, Math.round((sx - d.pl) / ((d.W - d.pl - d.pr) / (d.n - 1)))));
+  const x = d.pl + i * (d.W - d.pl - d.pr) / (d.n - 1);
+  xh.setAttribute('x1', x); xh.setAttribute('x2', x); xh.style.display = '';
+  const ago = d.n - i;
+  tip.innerHTML = '<b>' + (ago === 1 ? 'Yesterday' : ago + ' days ago') + '</b>' + d.names.map((nm, k) => '<div><i style="background:var(' + SERIES[k] + ')"></i>' + esc(nm) + ' <span>' + d.idx[k][i] + '</span></div>').join('');
+  tip.hidden = false;
+  const px = (x / d.W) * r.width;
+  tip.style.left = Math.min(Math.max(0, px - 70), r.width - 150) + 'px';
+}
+document.addEventListener('pointermove', lineHover);
+document.addEventListener('pointerdown', lineHover);
+document.addEventListener('pointerout', (e) => {
+  const wrap = e.target.closest && e.target.closest('.linewrap');
+  if (wrap && !wrap.contains(e.relatedTarget)) { wrap.querySelector('.tip').hidden = true; wrap.querySelector('.xh').style.display = 'none'; }
+});
 
 /* ----- High-paying remote jobs (free public feeds: Remotive, RemoteOK, Arbeitnow) ----- */
 const HIGH_PAY = /(engineer|developer|architect|data |machine learning|\bml\b|\bai\b|devops|\bsre\b|security|product (manager|owner|lead)|manager|director|head of|\blead\b|principal|staff|\bvp\b|chief|finance|financial|analyst|scientist|cloud|solutions|sales (engineer|director))/i;
@@ -426,7 +905,7 @@ async function buildGithub() {
 }
 
 const SECTIONS = [
-  { id: 'social', title: 'Trending on social media', fn: buildSocial },
+  { id: 'social', title: 'Trending on social media', fn: buildSocial, note: 'Lists are pulled live from free public sources each time you tap Refresh. Facebook and LinkedIn do not publish trending lists, so they are not shown.' },
   { id: 'tech', title: 'AI and technology', fn: buildTech },
   { id: 'sell', title: 'Trending to sell online', fn: buildSell },
   { id: 'jobs', title: 'High-paying remote jobs', fn: buildJobs, note: 'Salaries are shown as listed by the employer. Many senior roles do not list pay.' },
@@ -439,12 +918,15 @@ const CHEV = '<svg class="chev" viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" strok
 function renderGroups(s) {
   let o = '', any = false;
   for (const g of s.groups) {
+    if (g.type === 'sellDash') { any = true; o += renderSellDash(g); continue; }
+    if (g.type === 'socialDash') { any = true; o += renderSocialDash(g); continue; }
     if (!g.items || !g.items.length) continue;
     any = true;
     o += '<div class="group"><h3>' + esc(g.name) + '</h3><div class="src">' + esc(g.source) + '</div><ul class="rows">';
     for (const i of g.items) {
       const t = i.url ? '<a href="' + esc(i.url) + '" target="_blank" rel="noopener">' + esc(i.title) + '</a>' : esc(i.title);
       o += '<li dir="auto">' + t + (i.meta ? '<div class="sub">' + esc(i.meta) + '</div>' : '') +
+        (i.bar ? '<div class="ibar"><i style="width:' + Math.max(2, Math.round(i.bar * 100)) + '%"></i></div>' : '') +
         (i.badge ? '<span class="badge' + (i.badgeNone ? ' none' : '') + '">' + esc(i.badge) + '</span>' : '') + '</li>';
     }
     o += '</ul></div>';
@@ -544,21 +1026,22 @@ $('tabs').addEventListener('click', (e) => {
   applyTab();
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
-$('refresh').addEventListener('click', () => load());
+$('refresh').addEventListener('click', () => { feedPromise = null; load(); });
 $('theme').addEventListener('click', () => applyTheme(isDark() ? 'light' : 'dark'));
 $('seg').addEventListener('click', (e) => { const b = e.target.closest('button'); if (b) applyTheme(b.dataset.mode); });
 function toggleSettings(force) {
   const p = $('settings');
   const open = force === undefined ? p.style.display !== 'block' : force;
   p.style.display = open ? 'block' : 'none';
-  if (open) { const s = settings(); $('geo').value = s.geo; $('ytkey').value = s.ytkey; refreshThemeUi(); p.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  if (open) { const s = settings(); $('geo').value = s.geo; $('ytkey').value = s.ytkey; $('dataurl').value = s.dataUrl; refreshThemeUi(); p.scrollIntoView({ behavior: 'smooth', block: 'start' }); }
 }
 $('gear').addEventListener('click', () => toggleSettings());
 $('cancel').addEventListener('click', () => toggleSettings(false));
 $('save').addEventListener('click', () => {
   const geo = ($('geo').value || 'KW').trim().toUpperCase().slice(0, 2);
-  try { localStorage.setItem('mb:settings', JSON.stringify({ geo, ytkey: $('ytkey').value.trim() })); } catch (e) {}
+  try { localStorage.setItem('mb:settings', JSON.stringify({ geo, ytkey: $('ytkey').value.trim(), dataUrl: $('dataurl').value.trim() })); } catch (e) {}
   toggleSettings(false);
+  feedPromise = null;
   load();
 });
 
